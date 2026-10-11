@@ -207,9 +207,8 @@ button:disabled {
 .contenedor {
     width: min(1450px, 92%);
     margin: 35px auto 50px;
-    flex: 1;
+    flex: 1 0 auto;
 }
-
 /* CABECERA DE PÁGINA */
 
 .cabecera-pagina {
@@ -860,4 +859,20 @@ tbody tr:last-child td {
         animation: none !important;
         transition: none !important;
     }
+}
+
+/* Mantener el footer al final de la página */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.contenedor {
+    flex-grow: 1;
+}
+
+footer.pie-pagina {
+    flex-shrink: 0;
+    margin-top: auto;
 }

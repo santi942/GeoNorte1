@@ -10,6 +10,8 @@
 
     <link rel="stylesheet" href="../CSS/MENU.css">
     <link rel="icon" type="image/x-icon" href="../IMG/ICONO.ico">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../JS/SUPABASE.js"></script>
 
     <title>GeoNorte | Menú principal</title>
 </head>
@@ -29,10 +31,10 @@
         <h1 class="titulo-header">MENÚ</h1>
 
         <!-- CERRAR SESIÓN -->
-        <a href="../HTML/LOGIN.html" class="cerrar-sesion" id="cerrarSesion">
-            <span class="icono-salida" aria-hidden="true">➜</span>
-            <span>Cerrar sesión</span>
-        </a>
+        <button type="button" class="cerrar-sesion" id="cerrarSesion">
+    <span class="icono-salida" aria-hidden="true">➜</span>
+    <span>Cerrar sesión</span>
+</button>
 
     </header>
 
@@ -170,15 +172,52 @@
         <span>Topografía · Geodesia · Precisión</span>
     </footer>
 
-    <script>
-        // Evita que los módulos pendientes naveguen al hacer clic.
-        document.querySelectorAll(".modulo-proximamente")
-            .forEach(function (modulo) {
-                modulo.addEventListener("click", function (evento) {
-                    evento.preventDefault();
-                });
+    
+<script>
+    // Mantener desactivados los módulos pendientes.
+    document.querySelectorAll(".modulo-proximamente")
+        .forEach(function (modulo) {
+            modulo.addEventListener("click", function (evento) {
+                evento.preventDefault();
             });
-    </script>
+        });
+
+    // Cerrar la sesión real de Supabase.
+    document.getElementById("cerrarSesion")
+        ?.addEventListener("click", async function () {
+            const boton = this;
+            boton.disabled = true;
+
+            try {
+                const { error } =
+                    await clienteSupabase.auth.signOut();
+
+                if (error) throw error;
+
+                window.location.replace("LOGIN.html");
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
+                alert("No se pudo cerrar la sesión. Intenta nuevamente.");
+                boton.disabled = false;
+            }
+        });
+        window.addEventListener("pageshow", async function () {
+    try {
+        const { data, error } =
+            await clienteSupabase.auth.getUser();
+
+        if (error || !data.user) {
+            window.location.replace("LOGIN.html");
+        }
+    } catch (error) {
+        console.error("Error al verificar la sesión:", error);
+        window.location.replace("LOGIN.html");
+    }
+});
+</script>
+</body>
+</html>
+
 
 </body>
 </html>

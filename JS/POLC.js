@@ -1,4 +1,45 @@
 "use strict";
+
+/* ==========================================
+   PROTEGER POLIGONAL CERRADA
+   ========================================== */
+
+document.body.style.visibility = "hidden";
+
+let comprobandoSesion = false;
+
+async function protegerPoligonal() {
+    if (comprobandoSesion) return;
+    comprobandoSesion = true;
+
+    try {
+        const { data, error } =
+            await clienteSupabase.auth.getUser();
+
+        if (error || !data.user) {
+            window.location.replace("LOGIN.html");
+            return;
+        }
+
+        document.body.style.visibility = "visible";
+
+    } catch (error) {
+        console.error("Error verificando la sesión:", error);
+        window.location.replace("LOGIN.html");
+    } finally {
+        comprobandoSesion = false;
+    }
+}
+
+// Comprueba la sesión al cargar la página.
+protegerPoligonal();
+
+// También comprueba la sesión al volver con las flechas
+// del navegador o al recuperar una página de la caché.
+window.addEventListener("pageshow", () => {
+    protegerPoligonal();
+});
+
 /* =========================================================
 TOPocalc - POLIGONAL CERRADA
 Compatible con el HTML original de POLC.html
@@ -436,6 +477,7 @@ generarObservaciones(5);
 ocultarMensaje();
 }
 function nuevoProyecto() {
+    eliminarCroquisPoligonal();
 proyectoActualId = null;
 modoEdicion = false;
 ultimoResultado = null;
@@ -473,22 +515,81 @@ $("btnGuardarProyecto").textContent = "Guardar y calcular";
 ocultarMensaje();
 mostrarPanel(panelFormulario);
 }
-function guardarProyecto(datos) {
-const indice = proyectos.findIndex(
-proyecto => proyecto.id === datos.id
-);
-if (indice >= 0) {
-proyectos[indice] = datos;
-} else {
-proyectos.push(datos);
+
+async function guardarProyecto(datos) {
+    if (!usuarioActual) {
+        mostrarMensaje("No hay una sesión activa. Inicia sesión nuevamente.");
+        return false;
+    }
+
+    const registro = {
+        usuario_id: usuarioActual.id,
+        nombre: datos.nombre,
+        tipo: "poligonal_cerrada",
+        datos: datos,
+        actualizado_en: new Date().toISOString()
+    };
+
+    try {
+        let respuesta;
+
+        if (proyectoActualId) {
+            // Actualizar proyecto existente
+            respuesta = await clienteSupabase
+                .from("proyectos")
+                .update(registro)
+                .eq("id", proyectoActualId)
+                .eq("usuario_id", usuarioActual.id)
+                .select()
+                .single();
+        } else {
+            // Crear proyecto nuevo
+            respuesta = await clienteSupabase
+                .from("proyectos")
+                .insert(registro)
+                .select()
+                .single();
+        }
+
+        if (respuesta.error) {
+            throw respuesta.error;
+        }
+
+        const guardado = respuesta.data;
+
+        proyectoActualId = guardado.id;
+        datos.id = guardado.id;
+
+        const proyecto = {
+            ...(guardado.datos || {}),
+            id: guardado.id,
+            nombre: guardado.nombre
+        };
+
+        const indice = proyectos.findIndex(
+            item => item.id === guardado.id
+        );
+
+        if (indice >= 0) {
+            proyectos[indice] = proyecto;
+        } else {
+            proyectos.unshift(proyecto);
+        }
+
+        renderizarProyectos();
+        return true;
+
+    } catch (error) {
+        console.error("Error guardando el proyecto:", error);
+
+        mostrarMensaje(
+            "No se pudo guardar el proyecto en Supabase. Revisa los permisos de la tabla."
+        );
+
+        return false;
+    }
 }
-if (!guardarEnAlmacenamiento()) {
-return false;
-}
-proyectoActualId = datos.id;
-renderizarProyectos();
-return true;
-}
+
 /* ===================== CÁLCULO TOPOGRÁFICO ===================== */
 /*
 Convenciones:
@@ -1069,31 +1170,39 @@ csv,
 /* ===================== EVENTOS ===================== */
 $("btnNuevoProyecto")?.addEventListener("click", nuevoProyecto);
 $("btnCrearDesdeVacio")?.addEventListener("click", nuevoProyecto);
+
 $("btnVolverProyectos")?.addEventListener("click", () => {
-ocultarMensaje();
-mostrarPanel(panelProyectos);
-renderizarProyectos();
+    eliminarCroquisPoligonal();
+    ultimoResultado = null;
+    ocultarMensaje();
+    mostrarPanel(panelProyectos);
+    renderizarProyectos();
 });
+
+
 $("btnVolverResultados")?.addEventListener("click", () => {
-mostrarPanel(panelProyectos);
-renderizarProyectos();
+    eliminarCroquisPoligonal();
+    ultimoResultado = null;
+    mostrarPanel(panelProyectos);
+    renderizarProyectos();
 });
+
+
 $("btnCancelarFormulario")?.addEventListener("click", () => {
-ocultarMensaje();
-mostrarPanel(panelProyectos);
-renderizarProyectos();
+    eliminarCroquisPoligonal();
+    ultimoResultado = null;
+    ocultarMensaje();
+    mostrarPanel(panelProyectos);
+    renderizarProyectos();
 });
+
 $("btnEditarProyecto")?.addEventListener("click", () => {
 if (proyectoActualId) {
 abrirEdicion(proyectoActualId);
 }
 });
 $("btnExportarCSV")?.addEventListener("click", exportarCSV);
-$("btnCerrarSesion")?.addEventListener("click", () => {
-if (confirm("¿Deseas cerrar la sesión?")) {
-window.location.href = "MENU.html";
-}
-});
+$("btnCerrarSesion")?.addEventListener("click", cerrarSesion);
 [
 "norteReferencia",
 "esteReferencia",
@@ -1123,7 +1232,7 @@ $("puntoAmarre")?.addEventListener("change", () => {
 const cantidad = Number($("cantidadVertices").value);
 generarObservaciones(cantidad);
 });
-formProyecto?.addEventListener("submit", evento => {
+formProyecto?.addEventListener("submit", async evento => {
 evento.preventDefault();
 ocultarMensaje();
 try {
@@ -1133,7 +1242,7 @@ return;
 }
 const datos = leerDatosFormulario();
 const resultado = calcularPoligonal(datos);
-if (!guardarProyecto(datos)) return;
+if (!await guardarProyecto(datos)) return;
 mostrarResultados(datos, resultado);
 } catch (error) {
 mostrarMensaje(
@@ -1144,19 +1253,48 @@ console.error(error);
 }
 });
 /* ===================== INICIALIZACIÓN ===================== */
-function iniciarAplicacion() {
-if ($("fechaProyecto")) {
-$("fechaProyecto").value =
-new Date().toLocaleDateString("en-CA");
+
+async function iniciarAplicacion() {
+    try {
+        // Obtener el usuario que inició sesión en Supabase
+        const { data, error } =
+            await clienteSupabase.auth.getUser();
+
+        if (error || !data.user) {
+            window.location.replace("LOGIN.html");
+            return;
+        }
+
+        // ESTA LÍNEA ES LA QUE FALTABA
+        usuarioActual = data.user;
+
+        if ($("fechaProyecto")) {
+            $("fechaProyecto").value =
+                new Date().toLocaleDateString("en-CA");
+        }
+
+        generarObservaciones(
+            Number($("cantidadVertices")?.value || 5)
+        );
+
+        // Cargar los proyectos guardados en Supabase
+        await cargarProyectos();
+
+        renderizarProyectos();
+        actualizarOrientacion();
+        mostrarPanel(panelProyectos);
+
+    } catch (error) {
+        console.error("Error al iniciar la aplicación:", error);
+
+        mostrarMensaje(
+            "No se pudo verificar la sesión o cargar los proyectos."
+        );
+    }
 }
-generarObservaciones(
-Number($("cantidadVertices")?.value || 5)
-);
-renderizarProyectos();
-actualizarOrientacion();
-mostrarPanel(panelProyectos);
-}
+
 iniciarAplicacion();
+
 
 /**
  * Convierte grados decimales a formato GG° MM' SS"
@@ -1281,7 +1419,7 @@ function mostrarCroquisPoligonal(resultados) {
         </p>
     `;
 
-    document.body.appendChild(contenedor);
+    document.querySelector("main.contenedor").appendChild(contenedor);
 
     // Dimensiones del dibujo
     const ancho = 700;
@@ -1390,4 +1528,24 @@ function mostrarCroquisPoligonal(resultados) {
 
 function eliminarCroquisPoligonal() {
     document.getElementById("croquisPoligonal")?.remove();
+}
+
+
+async function cerrarSesion() {
+    eliminarCroquisPoligonal();
+    const boton = document.getElementById("btnCerrarSesion");
+
+    if (boton) boton.disabled = true;
+
+    const { error } = await clienteSupabase.auth.signOut();
+
+    if (error) {
+        console.error("Error al cerrar sesión:", error);
+        alert("No se pudo cerrar la sesión.");
+
+        if (boton) boton.disabled = false;
+        return;
+    }
+
+    window.location.replace("LOGIN.html");
 }
