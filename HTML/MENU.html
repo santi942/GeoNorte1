@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#17365d">
+    <meta name="description" content="GeoNorte: espacio de aprendizaje y herramientas de topografía, nivelación y geomática.">
+
+    <link rel="stylesheet" href="../CSS/MENU.css">
+    <link rel="icon" type="image/x-icon" href="../IMG/ICONO.ico">
+
+    <title>GeoNorte | Menú principal</title>
+</head>
+
+<body>
+
+    <!-- ENCABEZADO PRINCIPAL -->
+    <header class="encabezado">
+
+        <!-- LOGO Y MARCA -->
+        <a href="MENU.html" class="marca" aria-label="GeoNorte, menú principal">
+            <img src="../IMG/ICONO.ico" alt="Logo de GeoNorte">
+            <span>GeoNorte <small>| Menú</small></span>
+        </a>
+
+        <!-- TÍTULO CENTRAL -->
+        <h1 class="titulo-header">MENÚ</h1>
+
+        <!-- CERRAR SESIÓN -->
+        <a href="../HTML/LOGIN.html" class="cerrar-sesion" id="cerrarSesion">
+            <span class="icono-salida" aria-hidden="true">➜</span>
+            <span>Cerrar sesión</span>
+        </a>
+
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+
+        <!-- PRESENTACIÓN -->
+        <section class="presentacion">
+            <span class="etiqueta">GEONORTE · INGENIERÍA Y TERRITORIO</span>
+
+            <h2>Explora la topografía</h2>
+
+            <p>
+                Selecciona un módulo para comenzar tu trabajo
+                de cálculo y aprendizaje topográfico.
+            </p>
+
+            <div class="linea-decorativa"></div>
+        </section>
+
+        <!-- TARJETAS DE LOS MÓDULOS -->
+        <section class="contenedor" aria-label="Módulos de topografía">
+
+            <!-- POLIGONAL CERRADA -->
+            <a href="../HTML/POLC.html"
+               class="card"
+               aria-label="Abrir módulo de Poligonal Cerrada">
+
+                <figure>
+                    <img
+                        src="../IMG/polc.png"
+                        alt="Equipo topográfico y representación de una poligonal cerrada"
+                        loading="eager">
+                    <span class="numero-card">01</span>
+                </figure>
+
+                <div class="contenido">
+                    <span class="categoria">PLANIMETRÍA</span>
+                    <h3>Poligonal Cerrada</h3>
+                    <p>
+                        Levantamiento, ajuste angular,
+                        proyecciones y cierre de coordenadas.
+                    </p>
+                    <span class="explorar">
+                        Abrir módulo <span aria-hidden="true">→</span>
+                    </span>
+                </div>
+            </a>
+
+            <!-- NIVELACIÓN SIMPLE -->
+            <a href="#"
+               class="card modulo-proximamente"
+               aria-label="Nivelación Simple, módulo próximamente disponible">
+
+                <figure>
+                    <img
+                        src="../IMG/Nivs.png"
+                        alt="Equipo de nivelación simple"
+                        loading="lazy">
+                    <span class="numero-card">02</span>
+                </figure>
+
+                <div class="contenido">
+                    <span class="categoria">ALTIMETRÍA</span>
+                    <h3>Nivelación Simple</h3>
+                    <p>
+                        Cálculo de cotas, vistas atrás,
+                        vistas adelante y desniveles.
+                    </p>
+                    <span class="explorar">
+                        Próximamente
+                    </span>
+                </div>
+            </a>
+
+            <!-- NIVELACIÓN COMPUESTA -->
+            <a href="#"
+               class="card modulo-proximamente"
+               aria-label="Nivelación Compuesta, módulo próximamente disponible">
+
+                <figure>
+                    <img
+                        src="../IMG/Nivc.png"
+                        alt="Trabajo de nivelación compuesta en varias estaciones"
+                        loading="lazy">
+                    <span class="numero-card">03</span>
+                </figure>
+
+                <div class="contenido">
+                    <span class="categoria">ALTIMETRÍA</span>
+                    <h3>Nivelación Compuesta</h3>
+                    <p>
+                        Cálculo de cotas mediante varias
+                        estaciones y puntos de cambio.
+                    </p>
+                    <span class="explorar">
+                        Próximamente
+                    </span>
+                </div>
+            </a>
+
+            <!-- NIVELACIÓN TRIGONOMÉTRICA -->
+            <a href="#"
+               class="card modulo-proximamente"
+               aria-label="Nivelación Trigonométrica, módulo próximamente disponible">
+
+                <figure>
+                    <img
+                        src="../IMG/Nivt.png"
+                        alt="Estación total para nivelación trigonométrica"
+                        loading="lazy">
+                    <span class="numero-card">04</span>
+                </figure>
+
+                <div class="contenido">
+                    <span class="categoria">TRIGONOMETRÍA</span>
+                    <h3>Nivelación Trigonométrica</h3>
+                    <p>
+                        Determinación de desniveles
+                        mediante ángulos y distancias.
+                    </p>
+                    <span class="explorar">
+                        Próximamente
+                    </span>
+                </div>
+            </a>
+
+        </section>
+
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="pie-pagina">
+        <span class="pie-marca">GEONORTE</span>
+        <span>Topografía · Geodesia · Precisión</span>
+    </footer>
+
+    <script>
+        // Evita que los módulos pendientes naveguen al hacer clic.
+        document.querySelectorAll(".modulo-proximamente")
+            .forEach(function (modulo) {
+                modulo.addEventListener("click", function (evento) {
+                    evento.preventDefault();
+                });
+            });
+    </script>
+
+</body>
+</html>
