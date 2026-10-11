@@ -13,3 +13,23 @@ const clienteSupabase = window.supabase.createClient(
 );
 
 console.log("CAMPUS: cliente de Supabase inicializado.");
+async function crearUsuarioGeoNorte(nombre, correo, contrasena) {
+  const { data: sesion } = await clienteSupabase.auth.getSession();
+
+  if (!sesion.session) {
+    throw new Error("Debes iniciar sesión como administrador.");
+  }
+
+  const { data, error } = await clienteSupabase.functions.invoke(
+    "smart-worker",
+    {
+      body: { nombre, correo, contrasena },
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message || "No se pudo crear la cuenta.");
+  }
+
+  return data;
+}
