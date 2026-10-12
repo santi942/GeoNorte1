@@ -1,44 +1,6 @@
 "use strict";
 
-/* ==========================================
-   PROTEGER POLIGONAL CERRADA
-   ========================================== */
 
-document.body.style.visibility = "hidden";
-
-let comprobandoSesion = false;
-
-async function protegerPoligonal() {
-    if (comprobandoSesion) return;
-    comprobandoSesion = true;
-
-    try {
-        const { data, error } =
-            await clienteSupabase.auth.getUser();
-
-        if (error || !data.user) {
-            window.location.replace("LOGIN.html");
-            return;
-        }
-
-        document.body.style.visibility = "visible";
-
-    } catch (error) {
-        console.error("Error verificando la sesión:", error);
-        window.location.replace("LOGIN.html");
-    } finally {
-        comprobandoSesion = false;
-    }
-}
-
-// Comprueba la sesión al cargar la página.
-protegerPoligonal();
-
-// También comprueba la sesión al volver con las flechas
-// del navegador o al recuperar una página de la caché.
-window.addEventListener("pageshow", () => {
-    protegerPoligonal();
-});
 
 /* =========================================================
 TOPocalc - POLIGONAL CERRADA
