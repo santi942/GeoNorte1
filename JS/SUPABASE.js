@@ -1,35 +1,109 @@
 
+
 /* =========================================
-   CAMPUS - CONEXIÓN CON SUPABASE
+   GEONORTE - CONEXIÓN CON SUPABASE
 ========================================= */
 
-// Escribe aquí las credenciales reales de tu proyecto.
-const SUPABASE_URL = "https://jlhmojfiocyyponpkttt.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_2To6Y5AD7cKcf0QNDwzmrQ_OabWRX26";
+const SUPABASE_URL =
+    "https://jlhmojfiocyyponpkttt.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_2To6Y5AD7cKcf0QNDwzmrQ_OabWRX26";
 
 const clienteSupabase = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
 );
 
-console.log("CAMPUS: cliente de Supabase inicializado.");
-async function crearUsuarioGeoNorte(nombre, correo, contrasena) {
-  const { data: sesion } = await clienteSupabase.auth.getSession();
+console.log("GEONORTE: cliente de Supabase inicializado.");
 
-  if (!sesion.session) {
-    throw new Error("Debes iniciar sesión como administrador.");
-  }
+/* =========================================
+   CREAR CUENTA DESDE EL ADMINISTRADOR
+========================================= */
 
-  const { data, error } = await clienteSupabase.functions.invoke(
-    "smart-worker",
-    {
-      body: { nombre, correo, contrasena },
+async function crearUsuarioGeoNorte(
+    nombre,
+    correo,
+    contrasena,
+    rol = "estudiante"
+) {
+    // Verificar que exista una sesión.
+    const {
+        data: sesionData,
+        error: sesionError
+    } = await clienteSupabase.auth.getSession();
+
+    if (sesionError) {
+        throw new Error("No se pudo verificar la sesión.");
     }
-  );
 
-  if (error) {
-    throw new Error(error.message || "No se pudo crear la cuenta.");
-  }
+    if (!sesionData.session) {
+        throw new Error(
+            "Debes iniciar sesión como administrador."
+        );
+    }
 
-  return data;
+    // Validar los datos antes de enviarlos.
+    nombre = String(nombre || "").trim();
+    correo = String(correo || "").trim();
+    contrasena = String(contrasena || "");
+
+    if (!nombre || !correo || !contrasena) {
+        throw new Error(
+            "Completa todos los campos obligatorios."
+        );
+    }
+
+    if (!["estudiante", "administrador"].includes(rol)) {
+        throw new Error("El rol seleccionado no es válido.");
+    }
+
+    // Enviar los datos a la función del servidor.
+    const { data, error } =
+        await clienteSupabase.functions.invoke(
+            "smart-worker",
+            {
+                body: {
+                    nombre,
+                    correo,
+                    contrasena,
+                    rol
+                }
+            }
+        );
+
+    if (error) {
+        console.error(
+            "Error de smart-worker:",
+            error
+        );
+
+        let mensaje =
+            error.message ||
+            "No se pudo crear la cuenta.";
+
+        // Intentar recuperar el mensaje del servidor.
+        try {
+            if (error.context) {
+                const respuesta =
+                    await error.context.clone().json();
+
+                if (respuesta.error) {
+                    mensaje = respuesta.error;
+                } else if (respuesta.message) {
+                    mensaje = respuesta.message;
+                }
+            }
+        } catch (_) {
+            // La respuesta no necesariamente contiene JSON.
+        }
+
+        throw new Error(mensaje);
+    }
+
+    if (data?.error) {
+        throw new Error(data.error);
+    }
+
+    return data;
 }
