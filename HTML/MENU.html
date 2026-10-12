@@ -56,6 +56,129 @@
             <div class="linea-decorativa"></div>
         </section>
 
+<!-- ADMINISTRACIÓN: visible únicamente para administradores -->
+<section id="panelAdministracion"
+         style="display:none; max-width:1200px; margin:0 auto 35px; padding:0 20px;">
+
+    <div style="background:#fff; border:1px solid #e1e5eb;
+                border-radius:12px; padding:24px;
+                box-shadow:0 4px 14px rgba(0,0,0,.06);">
+
+        <span style="color:#24558b; font-weight:bold; font-size:13px;">
+            GEONORTE · CONTROL DE ACCESO
+        </span>
+
+        <h2 style="color:#17365d; margin:10px 0;">
+            Administración de usuarios
+        </h2>
+
+        <p style="color:#777; margin-bottom:20px;">
+            Gestiona las cuentas y sus datos asociados.
+        </p>
+
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+            <button type="button" id="btnCrearCuenta"
+                style="background:#17365d; color:white; border:0;
+                padding:12px 18px; border-radius:7px; cursor:pointer;">
+                ＋ Crear cuenta
+            </button>
+
+            <button type="button" id="btnMostrarEliminar"
+                style="background:#b8323c; color:white; border:0;
+                padding:12px 18px; border-radius:7px; cursor:pointer;">
+                Eliminar cuenta
+            </button>
+        </div>
+
+        <!-- FORMULARIO DE CREACIÓN -->
+        <form id="formCrearCuenta"
+              style="display:none; margin-top:24px; max-width:500px;">
+
+            <h3 style="color:#17365d;">Crear nueva cuenta</h3>
+
+            <label for="nuevoNombre">Nombre completo</label>
+            <input id="nuevoNombre" type="text" required maxlength="100"
+                autocomplete="name"
+                style="display:block; box-sizing:border-box; width:100%;
+                padding:11px; margin:7px 0 15px; border:1px solid #e1e5eb;
+                border-radius:6px;">
+
+            <label for="nuevoCorreo">Correo electrónico</label>
+            <input id="nuevoCorreo" type="email" required maxlength="254"
+                autocomplete="email"
+                style="display:block; box-sizing:border-box; width:100%;
+                padding:11px; margin:7px 0 15px; border:1px solid #e1e5eb;
+                border-radius:6px;">
+
+            <label for="nuevaContrasena">Contraseña inicial</label>
+            <input id="nuevaContrasena" type="password" required
+                minlength="8" maxlength="128" autocomplete="new-password"
+                style="display:block; box-sizing:border-box; width:100%;
+                padding:11px; margin:7px 0 15px; border:1px solid #e1e5eb;
+                border-radius:6px;">
+
+            <label for="nuevoRol">Rol</label>
+            <select id="nuevoRol" required
+                style="display:block; box-sizing:border-box; width:100%;
+                padding:11px; margin:7px 0 15px; border:1px solid #e1e5eb;
+                border-radius:6px;">
+                <option value="estudiante">Estudiante</option>
+                <option value="administrador">Administrador</option>
+            </select>
+
+            <button type="submit"
+                style="background:#17365d; color:white; border:0;
+                padding:11px 18px; border-radius:6px; cursor:pointer;">
+                Registrar cuenta
+            </button>
+
+            <button type="button" id="cancelarCrear"
+                style="padding:11px 18px; margin-left:6px; cursor:pointer;">
+                Cancelar
+            </button>
+        </form>
+
+        <!-- FORMULARIO DE ELIMINACIÓN -->
+        <form id="formEliminarCuenta"
+              style="display:none; margin-top:24px; max-width:500px;">
+
+            <h3 style="color:#b8323c;">Eliminar cuenta</h3>
+
+            <p style="color:#777;">
+                Esta acción debe eliminar la cuenta seleccionada y sus
+                proyectos y registros asociados. No se puede deshacer.
+            </p>
+
+            <label for="codigoEliminar">Código de usuario</label>
+            <input id="codigoEliminar" type="text"
+                placeholder="Ejemplo: GN-0002" required
+                pattern="GN-[0-9]{4,}" maxlength="20"
+                style="display:block; box-sizing:border-box; width:100%;
+                padding:11px; margin:7px 0 15px; border:1px solid #e1e5eb;
+                border-radius:6px;">
+
+            <label style="display:block; margin-bottom:15px;">
+                <input type="checkbox" id="confirmarEliminar" required>
+                Confirmo que deseo eliminar esta cuenta y sus datos.
+            </label>
+
+            <button type="submit"
+                style="background:#b8323c; color:white; border:0;
+                padding:11px 18px; border-radius:6px; cursor:pointer;">
+                Confirmar eliminación
+            </button>
+
+            <button type="button" id="cancelarEliminar"
+                style="padding:11px 18px; margin-left:6px; cursor:pointer;">
+                Cancelar
+            </button>
+        </form>
+
+        <p id="mensajeAdministracion" role="status"
+           aria-live="polite" style="margin-top:18px;"></p>
+    </div>
+</section>
+
         <!-- TARJETAS DE LOS MÓDULOS -->
         <section class="contenedor" aria-label="Módulos de topografía">
 
@@ -203,6 +326,189 @@
             }
         });
    
+/* ================================
+   ADMINISTRACIÓN DE GEONORTE
+================================ */
+
+const panelAdmin = document.getElementById("panelAdministracion");
+const formCrear = document.getElementById("formCrearCuenta");
+const formEliminar = document.getElementById("formEliminarCuenta");
+const mensajeAdmin = document.getElementById("mensajeAdministracion");
+
+function mostrarMensajeAdmin(texto, error = false) {
+    mensajeAdmin.textContent = texto;
+    mensajeAdmin.style.color = error ? "#b8323c" : "#17365d";
+}
+
+document.getElementById("btnCrearCuenta").addEventListener("click", () => {
+    formCrear.style.display = "block";
+    formEliminar.style.display = "none";
+    mostrarMensajeAdmin("");
+});
+
+document.getElementById("btnMostrarEliminar").addEventListener("click", () => {
+    formEliminar.style.display = "block";
+    formCrear.style.display = "none";
+    mostrarMensajeAdmin("");
+});
+
+document.getElementById("cancelarCrear").addEventListener("click", () => {
+    formCrear.reset();
+    formCrear.style.display = "none";
+});
+
+document.getElementById("cancelarEliminar").addEventListener("click", () => {
+    formEliminar.reset();
+    formEliminar.style.display = "none";
+});
+
+/* Comprobar la sesión y el rol real en Supabase. */
+async function cargarAdministracion() {
+    try {
+        const { data: sesionData, error: sesionError } =
+            await clienteSupabase.auth.getSession();
+
+        if (sesionError) throw sesionError;
+
+        const usuario = sesionData.session?.user;
+
+        if (!usuario) {
+            window.location.replace("../HTML/LOGIN.html");
+            return;
+        }
+
+        const { data: perfil, error } = await clienteSupabase
+            .from("perfiles")
+            .select("rol")
+            .eq("id", usuario.id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        // Los usuarios normales conservan su menú original.
+        if (perfil?.rol === "administrador") {
+            panelAdmin.style.display = "block";
+        } else {
+            panelAdmin.style.display = "none";
+        }
+    } catch (error) {
+        console.error("No se pudo verificar el rol:", error);
+        panelAdmin.style.display = "none";
+    }
+}
+
+cargarAdministracion();
+
+/* Crear cuenta mediante la función segura existente. */
+formCrear.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+
+    const boton = formCrear.querySelector('[type="submit"]');
+    boton.disabled = true;
+
+    try {
+        const nombre = document.getElementById("nuevoNombre").value.trim();
+        const correo = document.getElementById("nuevoCorreo").value.trim();
+        const contrasena = document.getElementById("nuevaContrasena").value;
+        const rol = document.getElementById("nuevoRol").value;
+
+        // Volver a comprobar el rol antes de solicitar la operación.
+        const { data: authData } = await clienteSupabase.auth.getUser();
+        if (!authData.user) throw new Error("La sesión ha expirado.");
+
+        const { data: perfilActual, error: errorPerfil } =
+            await clienteSupabase
+                .from("perfiles")
+                .select("rol")
+                .eq("id", authData.user.id)
+                .maybeSingle();
+
+        if (errorPerfil) throw errorPerfil;
+        if (perfilActual?.rol !== "administrador") {
+            throw new Error("No tienes permisos de administrador.");
+        }
+
+        if (typeof crearUsuarioGeoNorte !== "function") {
+            throw new Error("No se encontró crearUsuarioGeoNorte en SUPABASE.js.");
+        }
+
+        // La función existente crea usuarios. Para asignar roles de forma
+        // segura, el servidor también debe aceptar y validar el campo rol.
+        const resultado = await crearUsuarioGeoNorte(
+            nombre,
+            correo,
+            contrasena,
+            rol
+        );
+
+        mostrarMensajeAdmin(
+            "Cuenta creada correctamente" +
+            (resultado?.usuario ? ": " + resultado.usuario : "") +
+            "."
+        );
+
+        formCrear.reset();
+        formCrear.style.display = "none";
+    } catch (error) {
+        console.error("Error al crear cuenta:", error);
+        mostrarMensajeAdmin(error.message || "No se pudo crear la cuenta.", true);
+    } finally {
+        boton.disabled = false;
+    }
+});
+
+/* Eliminación: requiere una Edge Function segura del servidor. */
+formEliminar.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+
+    const codigo = document.getElementById("codigoEliminar")
+        .value.trim().toUpperCase();
+
+    if (!document.getElementById("confirmarEliminar").checked) {
+        mostrarMensajeAdmin("Debes confirmar la eliminación.", true);
+        return;
+    }
+
+    if (!/^GN-\d{4,}$/.test(codigo)) {
+        mostrarMensajeAdmin("El código de usuario no es válido.", true);
+        return;
+    }
+
+    const boton = formEliminar.querySelector('[type="submit"]');
+
+    if (!confirm(
+        `¿Eliminar definitivamente la cuenta ${codigo} y todos sus datos asociados?`
+    )) return;
+
+    boton.disabled = true;
+
+    try {
+        const { data, error } = await clienteSupabase.functions.invoke(
+            "eliminar-cuenta",
+            { body: { usuario: codigo } }
+        );
+
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        mostrarMensajeAdmin(
+            `La cuenta ${codigo} y los datos que el servidor haya confirmado como asociados fueron eliminados.`
+        );
+
+        formEliminar.reset();
+        formEliminar.style.display = "none";
+    } catch (error) {
+        console.error("Error al eliminar cuenta:", error);
+        mostrarMensajeAdmin(
+            error.message ||
+            "No se pudo eliminar la cuenta. Verifica la función eliminar-cuenta.",
+            true
+        );
+    } finally {
+        boton.disabled = false;
+    }
+});
+
 
 </script>
 </body>
