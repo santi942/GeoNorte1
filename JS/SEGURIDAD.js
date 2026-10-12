@@ -1,7 +1,5 @@
-
 /* =========================================
    GEONORTE - SEGURIDAD GENERAL
-   Requiere clienteSupabase de Supabase JS
 ========================================= */
 
 (() => {
@@ -11,62 +9,19 @@
     const PAGINA_LOGIN = "LOGIN.html";
 
     let temporizador = null;
+    let comprobandoSesion = false;
     let cerrandoSesion = false;
 
     function irAlLogin() {
         window.location.replace(PAGINA_LOGIN);
     }
 
-    async function cerrarSesion(mensaje = "") {
-        if (cerrandoSesion) return;
-
-        cerrandoSesion = true;
-        clearTimeout(temporizador);
-
-        try {
-            if (mensaje) {
-                sessionStorage.setItem(
-                    "geonorte_mensaje",
-                    mensaje
-                );
-            }
-
-            const { error } =
-                await clienteSupabase.auth.signOut();
-
-            if (error) {
-                console.error(
-                    "Error al cerrar sesión:",
-                    error.message
-                );
-            }
-        } catch (error) {
-            console.error(
-                "No se pudo cerrar la sesión:",
-                error
-            );
-        } finally {
-            irAlLogin();
-        }
-    }
-
-    function reiniciarTemporizador() {
-        if (cerrandoSesion) return;
-
-        clearTimeout(temporizador);
-
-        temporizador = setTimeout(() => {
-            cerrarSesion(
-                "Tu sesión se cerró por inactividad."
-            );
-        }, TIEMPO_INACTIVIDAD);
-    }
-
     async function protegerPagina() {
-        // Evita mostrar contenido privado antes de
-        // comprobar la sesión.
-        document.documentElement.style.visibility =
-            "hidden";
+        if (comprobandoSesion || cerrandoSesion) return;
+
+        comprobandoSesion = true;
+
+        document.documentElement.style.visibility = "hidden";
 
         try {
             const { data, error } =
@@ -77,63 +32,71 @@
                 return;
             }
 
-            document.documentElement.style.visibility =
-                "visible";
-
+            document.documentElement.style.visibility = "visible";
             reiniciarTemporizador();
 
         } catch (error) {
-            console.error(
-                "No se pudo verificar la sesión:",
-                error
-            );
+            console.error("Error comprobando sesión:", error);
+            irAlLogin();
 
+        } finally {
+            comprobandoSesion = false;
+        }
+    }
+
+    function reiniciarTemporizador() {
+        if (cerrandoSesion) return;
+
+        clearTimeout(temporizador);
+
+        temporizador = setTimeout(() => {
+            cerrarSesion();
+        }, TIEMPO_INACTIVIDAD);
+    }
+
+    async function cerrarSesion() {
+        if (cerrandoSesion) return;
+
+        cerrandoSesion = true;
+        clearTimeout(temporizador);
+
+        try {
+            const { error } =
+                await clienteSupabase.auth.signOut();
+
+            if (error) {
+                console.error("Error cerrando sesión:", error);
+            }
+        } catch (error) {
+            console.error("Error cerrando sesión:", error);
+        } finally {
             irAlLogin();
         }
     }
 
-    // Detectar actividad del usuario.
-    [
-        "pointerdown",
-        "keydown",
-        "scroll",
-        "touchstart"
-    ].forEach(evento => {
-        document.addEventListener(
-            evento,
-            reiniciarTemporizador,
-            { passive: true }
-        );
-    });
-
-    // Detectar cierre de sesión desde otra pestaña
-    // o desde otro componente de la aplicación.
-    clienteSupabase.auth.onAuthStateChange(
-        (evento, sesion) => {
-            if (
-                evento === "SIGNED_OUT" ||
-                !sesion
-            ) {
-                irAlLogin();
-            }
+    ["pointerdown", "keydown", "scroll", "touchstart"].forEach(
+        evento => {
+            document.addEventListener(
+                evento,
+                reiniciarTemporizador,
+                { passive: true }
+            );
         }
     );
 
-    // Volver a comprobar la sesión al regresar
-    // a una página desde la caché del navegador.
-    window.addEventListener("pageshow", () => {
-        if (!cerrandoSesion) {
-            protegerPagina();
+    // Redirigir solo cuando la sesión se haya cerrado realmente.
+    clienteSupabase.auth.onAuthStateChange((evento) => {
+        if (evento === "SIGNED_OUT") {
+            irAlLogin();
         }
     });
 
-    // Protección inicial.
-    protegerPagina();
+    // Comprobar la sesión al cargar o restaurar la página.
+    window.addEventListener("pageshow", protegerPagina);
 
-    // Permite reutilizar el cierre desde otros scripts.
+    // Permitir que otros archivos usen estas funciones.
     window.GeoNorteSeguridad = {
         cerrarSesion,
         reiniciarTemporizador
     };
-
 })();

@@ -203,24 +203,6 @@
             }
         });
    
-window.addEventListener("pageshow", async function () {
-    try {
-        // Esperar a que Supabase recupere la sesión guardada.
-        const { data, error } =
-            await clienteSupabase.auth.getSession();
-
-        if (error) {
-            console.error("Error al recuperar la sesión:", error);
-            return;
-        }
-
-        if (!data.session) {
-            window.location.replace("LOGIN.html");
-        }
-    } catch (error) {
-        console.error("Error al verificar la sesión:", error);
-    }
-});
 
 </script>
 </body>
