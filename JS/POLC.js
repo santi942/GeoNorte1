@@ -1509,5 +1509,5 @@ async function cerrarSesion() {
         return;
     }
 
-    window.location.replace("LOGIN.html");
+    window.location.replace("../HTML/LOGIN.html");
 }

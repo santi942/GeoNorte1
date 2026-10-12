@@ -10,9 +10,9 @@
 
     <link rel="stylesheet" href="../CSS/MENU.css">
     <link rel="icon" type="image/x-icon" href="../IMG/ICONO.ico">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="JS/SUPABASE.js"></script>
-<script src="JS/SEGURIDAD.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../JS/SUPABASE.js"></script>
+<script src="../JS/SEGURIDAD.js"></script>
 
     <title>GeoNorte | Menú principal</title>
 </head>
@@ -195,7 +195,7 @@
 
                 if (error) throw error;
 
-                window.location.replace("LOGIN.html");
+                window.location.replace("../HTML/LOGIN.html");
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
                 alert("No se pudo cerrar la sesión. Intenta nuevamente.");
@@ -209,5 +209,3 @@
 </html>
 
 
-</body>
-</html>
