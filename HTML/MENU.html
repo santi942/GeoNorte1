@@ -297,6 +297,33 @@
     </footer>
 
     
+<!-- VENTANA DE CONFIRMACIÓN DE GEONORTE -->
+<div id="modalEliminar" class="modal-eliminar" aria-hidden="true">
+    <div class="modal-contenido" role="dialog"
+         aria-modal="true" aria-labelledby="tituloEliminar">
+
+        <div class="modal-icono">!</div>
+
+        <h2 id="tituloEliminar">¿Eliminar cuenta?</h2>
+
+        <p id="textoEliminar">
+            Se eliminará la cuenta seleccionada y sus datos asociados.
+        </p>
+
+        <div class="modal-acciones">
+            <button type="button" id="cancelarModalEliminar"
+                    class="btn-cancelar-modal">
+                Cancelar
+            </button>
+
+            <button type="button" id="confirmarModalEliminar"
+                    class="btn-confirmar-modal">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     // Mantener desactivados los módulos pendientes.
     document.querySelectorAll(".modulo-proximamente")
@@ -458,6 +485,70 @@ formCrear.addEventListener("submit", async (evento) => {
 });
 
 /* Eliminación: requiere una Edge Function segura del servidor. */
+
+/* =========================================
+   CONFIRMACIÓN PERSONALIZADA GEONORTE
+========================================= */
+
+function confirmarEliminacionEnPagina(codigo) {
+    const modal = document.getElementById("modalEliminar");
+    const textoModal = document.getElementById("textoEliminar");
+    const botonConfirmar =
+        document.getElementById("confirmarModalEliminar");
+    const botonCancelar =
+        document.getElementById("cancelarModalEliminar");
+
+    textoModal.textContent =
+        `¿Eliminar definitivamente la cuenta ${codigo} y todos sus datos asociados?`;
+
+    modal.classList.add("visible");
+    modal.setAttribute("aria-hidden", "false");
+    botonConfirmar.focus();
+
+    return new Promise((resolve) => {
+        function cerrar(resultado) {
+            modal.classList.remove("visible");
+            modal.setAttribute("aria-hidden", "true");
+
+            botonConfirmar.removeEventListener("click", aceptar);
+            botonCancelar.removeEventListener("click", cancelar);
+            modal.removeEventListener("click", clicFondo);
+            document.removeEventListener("keydown", teclaEscape);
+
+            resolve(resultado);
+        }
+
+        function aceptar() {
+            cerrar(true);
+        }
+
+        function cancelar() {
+            cerrar(false);
+        }
+
+        function clicFondo(evento) {
+            if (evento.target === modal) {
+                cancelar();
+            }
+        }
+
+        function teclaEscape(evento) {
+            if (evento.key === "Escape") {
+                cancelar();
+            }
+        }
+
+        botonConfirmar.addEventListener("click", aceptar);
+        botonCancelar.addEventListener("click", cancelar);
+        modal.addEventListener("click", clicFondo);
+        document.addEventListener("keydown", teclaEscape);
+    });
+}
+
+/* =========================================
+   ELIMINAR CUENTA
+========================================= */
+
 formEliminar.addEventListener("submit", async (evento) => {
     evento.preventDefault();
 
@@ -465,49 +556,73 @@ formEliminar.addEventListener("submit", async (evento) => {
         .value.trim().toUpperCase();
 
     if (!document.getElementById("confirmarEliminar").checked) {
-        mostrarMensajeAdmin("Debes confirmar la eliminación.", true);
+        mostrarMensajeAdmin(
+            "Debes confirmar la eliminación.",
+            true
+        );
         return;
     }
 
     if (!/^GN-\d{4,}$/.test(codigo)) {
-        mostrarMensajeAdmin("El código de usuario no es válido.", true);
+        mostrarMensajeAdmin(
+            "El código de usuario no es válido.",
+            true
+        );
+        return;
+    }
+
+    // Mostrar la ventana de GeoNorte, no la del navegador.
+    const confirmado = await confirmarEliminacionEnPagina(codigo);
+
+    if (!confirmado) {
+        mostrarMensajeAdmin("Eliminación cancelada.");
         return;
     }
 
     const boton = formEliminar.querySelector('[type="submit"]');
-
-    if (!confirm(
-        `¿Eliminar definitivamente la cuenta ${codigo} y todos sus datos asociados?`
-    )) return;
-
     boton.disabled = true;
 
     try {
-        const { data, error } = await clienteSupabase.functions.invoke(
-            "eliminar-cuenta",
-            { body: { usuario: codigo } }
-        );
+        const { data, error } =
+            await clienteSupabase.functions.invoke(
+                "eliminar-cuenta",
+                {
+                    body: { usuario: codigo }
+                }
+            );
 
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
+        if (error) {
+            console.error("Error de Edge Function:", error);
+            throw new Error(
+                data?.error || error.message ||
+                "No se pudo eliminar la cuenta."
+            );
+        }
+
+        if (data?.error) {
+            throw new Error(data.error);
+        }
 
         mostrarMensajeAdmin(
-            `La cuenta ${codigo} y los datos que el servidor haya confirmado como asociados fueron eliminados.`
+            `La cuenta ${codigo} fue eliminada. ` +
+            `Proyectos eliminados: ${data.proyectosEliminados ?? 0}.`
         );
 
         formEliminar.reset();
         formEliminar.style.display = "none";
+
     } catch (error) {
         console.error("Error al eliminar cuenta:", error);
+
         mostrarMensajeAdmin(
-            error.message ||
-            "No se pudo eliminar la cuenta. Verifica la función eliminar-cuenta.",
+            error.message || "No se pudo eliminar la cuenta.",
             true
         );
     } finally {
         boton.disabled = false;
     }
 });
+
 
 
 </script>
