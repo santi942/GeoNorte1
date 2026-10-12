@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 // Iniciar sesión mediante código de GeoNorte.
                 const { data, error } =
-                    await supabase.functions.invoke("login-codigo", {
+                    await supabase.functions.invoke("rapid-function", {
                         body: {
                             usuario: identificador.toUpperCase(),
                             contrasena
