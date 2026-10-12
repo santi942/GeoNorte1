@@ -594,3 +594,140 @@ main {
         scroll-behavior: auto !important;
     }
 }
+
+
+/* =====================================
+   MODAL DE CONFIRMACIÓN GEONORTE
+===================================== */
+
+.modal-eliminar {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 29, 48, 0.62);
+    backdrop-filter: blur(4px);
+}
+
+.modal-eliminar.visible {
+    display: flex;
+}
+
+.modal-contenido {
+    width: 100%;
+    max-width: 430px;
+    padding: 30px;
+    box-sizing: border-box;
+    background: #fff;
+    border: 1px solid #e1e5eb;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    text-align: center;
+    animation: aparecerModal 0.2s ease-out;
+}
+
+.modal-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #fdebed;
+    color: #b8323c;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.modal-contenido h2 {
+    margin: 0 0 12px;
+    color: #17365d;
+    font-size: 23px;
+}
+
+.modal-contenido p {
+    margin: 0;
+    color: #626b78;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.modal-acciones {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.modal-acciones button {
+    padding: 12px 19px;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.modal-acciones button:hover {
+    transform: translateY(-1px);
+}
+
+.btn-cancelar-modal {
+    border: 1px solid #d5dbe4;
+    background: #fff;
+    color: #17365d;
+}
+
+.btn-cancelar-modal:hover {
+    background: #f4f6f9;
+}
+
+.btn-confirmar-modal {
+    border: 1px solid #b8323c;
+    background: #b8323c;
+    color: #fff;
+}
+
+.btn-confirmar-modal:hover {
+    background: #982832;
+}
+
+.modal-acciones button:focus-visible {
+    outline: 3px solid #8ab4e8;
+    outline-offset: 3px;
+}
+
+@keyframes aparecerModal {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-contenido {
+        padding: 24px 19px;
+    }
+
+    .modal-acciones {
+        flex-direction: column-reverse;
+    }
+
+    .modal-acciones button {
+        width: 100%;
+    }
+}
+
+.modal-eliminar.visible {
+    display: flex;
+}
