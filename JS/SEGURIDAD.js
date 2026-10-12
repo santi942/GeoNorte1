@@ -94,6 +94,8 @@
     // Comprobar la sesión al cargar o restaurar la página.
     window.addEventListener("pageshow", protegerPagina);
 
+    protegerPagina();
+
     // Permitir que otros archivos usen estas funciones.
     window.GeoNorteSeguridad = {
         cerrarSesion,
